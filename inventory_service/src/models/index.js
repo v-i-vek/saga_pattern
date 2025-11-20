@@ -1,39 +1,49 @@
-const { Sequelize } = require("sequelize");
-const path = require("path");
+const { UUID } = require("sequelize");
+const { sequelize } = require("./db");
 
-const storage =
-  process.env.DB_STORAGE ||
-  path.join(__dirname, "..", "..", "inventory.sqlite");
-
-const sequelize = new Sequelize({
-  dialect: "sqlite",
-  storage,
-  logging: false,
-});
-
-async function connectDB() {
-  try {
-    await sequelize.authenticate();
-    console.log("Sequelize connected to", storage);
-    await sequelize.sync();
-  } catch (err) {
-    console.error("Sequelize connection error:", err);
-    throw err;
+const Inventory = sequelize.define(
+  "Inventory",
+  {
+    id: {
+      type: UUID,
+      primaryKey: true,
+      defaultValue: UUIDV4,
+    },
+    saga_id: {
+      type: UUID,
+      defaultValue: UUIDV4,
+      allowNull: false,
+    },
+    order_id: {
+      type: UUID,
+      allowNull: false,
+    },
+    product_id: {
+      type: UUID,
+      allowNull: false,
+    },
+    quantity: {
+      type: Number,
+      allowNull: false,
+    },
+    status: {
+      type: String,
+      allowNull: false,
+    },
+    createdAt: {
+      type: Date,
+      defaultValue: Date.now,
+    },
+  },
+  {
+    indexex: [
+      {
+        name: "idx_inventory_saga_id",
+        unique: true,
+        fields: ["saga_id"],
+      },
+    ],
   }
-}
+);
 
-/**
- * Models should only contain schema definitions and not handle DB connections.
- * Define your model files here (e.g. product.js) which export functions that
- * receive a `sequelize` instance and DataTypes and return a model.
- *
- * Example model file (src/models/product.js):
- * module.exports = (sequelize, DataTypes) => {
- *   return sequelize.define('Product', { name: DataTypes.STRING }, {});
- * };
- *
- * You can create an index file that imports/initializes those models when
- * you have a sequelize instance available (from src/config/db.js).
- */
-
-module.exports = {};
+module.exports = { Inventory };
