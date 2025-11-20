@@ -2,17 +2,20 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const proxy = require("express-http-proxy");
-const cors = require('cors')
+const cors = require("cors");
 
 const { validateToken } = require("./middleware/validate.token");
 // Add body parser Middleware
 
 const port = process.env.PORT || 3000;
 
-const auth_service = process.env.AUTH_SERVICE || "localhost:3001"
-const blog_service = process.env.BLOG_SERVICE || "localhost:3002"
-const media_service = process.env.MEDIA_SERVICE || "localhost:3003"
-app.use(cors())
+const auth_service = process.env.AUTH_SERVICE || "localhost:3001";
+const blog_service = process.env.BLOG_SERVICE || "localhost:3002";
+const media_service = process.env.MEDIA_SERVICE || "localhost:3003";
+const order_service = process.env.ORDER_SERVICE || "localhost:3005";
+const inventory_service = process.env.INVENTORY_SERVICE || "localhost:3004";
+const payment_service = process.env.PAYMENT_SERVICE || "localhost:3006";
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -44,13 +47,13 @@ const proxyOption = {
 
 // for authorization
 
-app.get('/v1/hello',(req,res,next)=>{
-   res.status(200).json({
-        success:true,
-        message:"welcome to our API"
-  })
-  next()
-})
+app.get("/v1/hello", (req, res, next) => {
+  res.status(200).json({
+    success: true,
+    message: "welcome to our API",
+  });
+  next();
+});
 app.use(
   "/v1/auth",
   proxy(`http://${auth_service}/api/auth`, {
@@ -98,7 +101,7 @@ app.use(
     ...proxyOption,
     proxyReqOptDecorator: (proxyReq, srcReq) => {
       proxyReq.headers["x-user-id"] = srcReq.user.id;
-       if (!srcReq.headers["content-type"].startsWith("multipart/form-data")) {
+      if (!srcReq.headers["content-type"].startsWith("multipart/form-data")) {
         proxyReq.headers["Content-Type"] = "application/json";
       }
 
@@ -107,6 +110,69 @@ app.use(
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
       console.log(
         "Response Recieved from media service : ",
+        proxyRes.statuscode
+      );
+      return proxyResData;
+    },
+  })
+);
+
+// Inventory service (no auth by default)
+app.use(
+  "/v1/inventory",
+  proxy(`http://${inventory_service}/api/inventory`, {
+    ...proxyOption,
+    proxyReqOptDecorator: (proxyReq, srcReq) => {
+      proxyReq.headers["Content-Type"] = "application/json";
+      return proxyReq;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      console.log(
+        "Response Recieved from inventory service : ",
+        proxyRes.statuscode
+      );
+      return proxyResData;
+    },
+  })
+);
+
+// Order service (requires auth)
+app.use(
+  "/v1/order",
+  validateToken,
+  proxy(`http://${order_service}/api/order`, {
+    ...proxyOption,
+    proxyReqOptDecorator: (proxyReq, srcReq) => {
+      proxyReq.headers["Content-Type"] = "application/json";
+      if (srcReq.user && srcReq.user.id)
+        proxyReq.headers["x-user-id"] = srcReq.user.id;
+      return proxyReq;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      console.log(
+        "Response Recieved from order service : ",
+        proxyRes.statuscode
+      );
+      return proxyResData;
+    },
+  })
+);
+
+// Payment service (requires auth)
+app.use(
+  "/v1/payment",
+  validateToken,
+  proxy(`http://${payment_service}/api/payment`, {
+    ...proxyOption,
+    proxyReqOptDecorator: (proxyReq, srcReq) => {
+      proxyReq.headers["Content-Type"] = "application/json";
+      if (srcReq.user && srcReq.user.id)
+        proxyReq.headers["x-user-id"] = srcReq.user.id;
+      return proxyReq;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      console.log(
+        "Response Recieved from payment service : ",
         proxyRes.statuscode
       );
       return proxyResData;

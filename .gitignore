@@ -3,3 +3,4 @@ identity_service/node_modules
 blog_service/node_modules
 media_service/node_modules
 .env
+node_modules

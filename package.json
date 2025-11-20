@@ -1,0 +1,25 @@
+{
+  "name": "saga_pattern_in_e_commerce_app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:services": "concurrently \"npm run dev --prefix api_gateway\" \"npm run dev --prefix order_service\" \"npm run dev --prefix inventory_service\" \"npm run dev --prefix payment_service\" \"npm run dev --prefix identity_service\"",
+    "install:all": "concurrently \"npm i --prefix identity_service\" \"npm i --prefix inventory_service\" \"npm i --prefix payment_service\" \"npm i --prefix order_service\" \"npm i --prefix api_gateway\" \"npm run start:services\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/v-i-vek/micro_services.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/v-i-vek/micro_services/issues"
+  },
+  "homepage": "https://github.com/v-i-vek/micro_services#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
