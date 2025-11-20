@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME || "saga_pattern",
+  process.env.DB_NAME || "postgres",
   process.env.DB_USER || "postgres",
   process.env.DB_PASS || "root",
   {
