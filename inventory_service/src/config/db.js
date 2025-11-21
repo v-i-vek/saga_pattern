@@ -17,6 +17,8 @@ async function connectDB() {
   try {
     await sequelize.authenticate();
     console.log("Postgres connected for inventory service");
+    await sequelize.query('CREATE SCHEMA IF NOT EXISTS "inventory"');
+
     // sync in dev; remove or replace with migrations in production
     await sequelize.sync();
   } catch (err) {

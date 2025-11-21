@@ -17,7 +17,8 @@ async function connectDB() {
   try {
     await sequelize.authenticate();
     console.log("Postgres connected for order service");
-    await sequelize.sync();
+    await sequelize.query('CREATE SCHEMA IF NOT EXISTS "order"');
+    await sequelize.sync({ alter: true });
   } catch (err) {
     console.error("Postgres connection error (order):", err);
     throw err;

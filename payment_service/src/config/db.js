@@ -17,6 +17,8 @@ async function connectDB() {
   try {
     await sequelize.authenticate();
     console.log("Postgres connected for payment service");
+    await sequelize.query('CREATE SCHEMA IF NOT EXISTS "payment"');
+
     await sequelize.sync();
   } catch (err) {
     console.error("Postgres connection error (payment):", err);

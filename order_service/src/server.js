@@ -1,11 +1,15 @@
 const express = require("express");
 require("dotenv").config();
+const { connectDB } = require("./config/db");
+const { startOutBoxRelay } = require("./services/outboxRelay");
 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 3005;
 
 // Sequelize connection
-const { connectDB } = require("./config/db");
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "order" });
@@ -14,6 +18,7 @@ app.get("/health", (req, res) => {
 async function start() {
   try {
     await connectDB();
+    await startOutBoxRelay();
     app.listen(PORT, () => {
       console.log(`Order service listening on port ${PORT}`);
     });
