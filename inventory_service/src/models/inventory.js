@@ -1,8 +1,7 @@
 const { UUID } = require("sequelize");
-const { sequelize } = require("./db");
+const { sequelize } = require("../config/db");
 
 const { DataTypes } = require("sequelize");
-const { sequelize } = require("./db");
 
 // 1. The specific reservation for this Saga
 const InventoryReservation = sequelize.define(

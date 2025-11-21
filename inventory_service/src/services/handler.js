@@ -1,4 +1,6 @@
 const { Product } = require("../models/inventory");
+const { Outbox } = require("../models/outbox");
+const { ProcessedMSG } = require("../models/processedMSG");
 
 const handleReserveStock = async (content, messageId) => {
   const t = await sequelize.transaction();

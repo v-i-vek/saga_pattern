@@ -10,7 +10,7 @@ async function connect() {
     connection = await amqp.connect("amqp://localhost");
     channel = await connection.createChannel();
 
-    await this.channel.assertExchange("saga_exchange", "direct", {
+    await channel.assertExchange("saga_exchange", "direct", {
       durable: true,
     });
 
@@ -38,7 +38,7 @@ async function publish(routingKey, payload) {
   }
 }
 
-async function consume(routingKey) {
+async function consume(routingKey, callback) {
   try {
     if (!channel) {
       await connect();
@@ -62,7 +62,7 @@ async function consume(routingKey) {
 
         try {
           if (routingKey === MQ_COMMAND) {
-            await handleReserveStock(content, msg.properties.messageId);
+            await callback(content, msg.properties.messageId);
           }
           // Acknowledge (Tell RabbitMQ we are done)
           channel.ack(msg);
