@@ -3,6 +3,7 @@ require("dotenv").config();
 const { connectDB } = require("./config/db");
 const { startOutBoxRelay } = require("./services/outboxRelay");
 const { createOrder } = require("./controller/orderController");
+const { consume } = require("./services/messageBroker");
 
 const app = express();
 
@@ -20,6 +21,7 @@ async function start() {
   try {
     await connectDB();
     await startOutBoxRelay();
+    await consume();
     app.use("/order", createOrder);
     app.listen(PORT, () => {
       console.log(`Order service listening on port ${PORT}`);

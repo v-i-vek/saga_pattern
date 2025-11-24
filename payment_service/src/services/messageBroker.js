@@ -2,7 +2,7 @@ const amqp = require("amqplib");
 
 let channel = null;
 let connection = null;
-
+const MQ_COMMAND = "command.process_payment";
 async function connect() {
   try {
     connection = await amqp.connect("amqp://localhost");
@@ -36,6 +36,45 @@ async function publish(routingKey, payload) {
   }
 }
 
+async function consume(routingKey, callback) {
+  try {
+    if (!channel) {
+      await connect();
+    }
+    // Create a Queue for Inventory Service
+    // 'inventory_queue' will hold messages specifically for this service
+    const q = await channel.assertQueue("inventory_queue", { durable: true });
+
+    //  Bind Queue to Exchange
+    // We listen specifically for "command.reserve_stock"
+    await channel.bindQueue(q.queue, "saga_exchange", MQ_COMMAND);
+
+    console.log("🎧 Inventory Service waiting for messages...");
+
+    // consume messages
+    channel.consume(q.queue, async () => {
+      if (msg !== null) {
+        const content = JSON.parse(msg.content.toString());
+        const routingKey = msg.fields.routingKey;
+        console.log(`📥 Received: ${routingKey}`);
+
+        try {
+          if (routingKey === MQ_COMMAND) {
+            await callback(content, msg.properties.messageId);
+          }
+          // Acknowledge (Tell RabbitMQ we are done)
+          channel.ack(msg);
+        } catch (error) {
+          console.error("Error processing message:", error);
+          // If strictly failing, you might nack or send to Dead Letter Queue
+          channel.nack(msg);
+        }
+      }
+    });
+  } catch (error) {}
+}
+
 module.exports = {
   publish,
+  consume,
 };

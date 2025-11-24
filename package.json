@@ -5,7 +5,7 @@
   "main": "test.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:services": "concurrently \"npm run dev --prefix api_gateway\" \"npm run dev --prefix order_service\" \"npm run dev --prefix inventory_service\" \"npm run dev --prefix payment_service\" \"npm run dev --prefix identity_service\"",
+    "start:services": "concurrently \"npm run dev --prefix api_gateway\" \"npm run dev --prefix order_service\" \"npm run dev --prefix inventory_service\" \"npm run dev --prefix payment_service\" ",
     "install:all": "concurrently \"npm i --prefix identity_service\" \"npm i --prefix inventory_service\" \"npm i --prefix payment_service\" \"npm i --prefix order_service\" \"npm i --prefix api_gateway\" \"npm run start:services\""
   },
   "repository": {
