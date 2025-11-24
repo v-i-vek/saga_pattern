@@ -1,8 +1,9 @@
 const { sequelize } = require("../config/db");
 const { ProcessedMSG } = require("../models/processedMSG");
 const { Payments } = require("../models/payment");
+const { Outbox } = require("../models/outbox");
 
-export const handleProcessPayment = async (payload, messageId) => {
+const handleProcessPayment = async (payload, messageId) => {
   const t = await sequelize.transaction();
   try {
     const { saga_id, order_id, amount, currency } = payload;
@@ -94,4 +95,8 @@ export const handleProcessPayment = async (payload, messageId) => {
     console.error("Payment Handler Error:", error);
     throw error;
   }
+};
+
+module.exports = {
+  handleProcessPayment,
 };

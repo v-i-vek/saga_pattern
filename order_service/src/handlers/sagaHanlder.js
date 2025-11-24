@@ -20,7 +20,7 @@ const isProcessed = async (messageId, t) => {
 
 //  handler:1 stock Reserved --> Trigger Payment service
 
-export const handleStockReserve = async (payload, messageId) => {
+const handleStockReserve = async (payload, messageId) => {
   const t = await sequelize.transaction();
 
   try {
@@ -63,7 +63,7 @@ export const handleStockReserve = async (payload, messageId) => {
 };
 
 // handler 2: stock failed --> failed order
-export const handleStockFailed = async (payload, messageId) => {
+const handleStockFailed = async (payload, messageId) => {
   const t = await sequelize.transaction();
   try {
     const { saga_id } = payload;
@@ -85,7 +85,7 @@ export const handleStockFailed = async (payload, messageId) => {
 
 // handler 3 payment success -> complete order
 
-export const handlePaymentSuccess = async (payload, messageId) => {
+const handlePaymentSuccess = async (payload, messageId) => {
   const t = await sequelize.transaction();
 
   try {
@@ -109,7 +109,7 @@ export const handlePaymentSuccess = async (payload, messageId) => {
   }
 };
 
-export const handlePaymentFailed = async (payload, messageId) => {
+const handlePaymentFailed = async (payload, messageId) => {
   const t = await sequelize.transaction();
 
   try {
@@ -145,4 +145,11 @@ export const handlePaymentFailed = async (payload, messageId) => {
     await t.rollback();
     console.error("Handler Error", error);
   }
+};
+
+module.exports = {
+  handleStockReserve,
+  handleStockFailed,
+  handlePaymentSuccess,
+  handlePaymentFailed,
 };

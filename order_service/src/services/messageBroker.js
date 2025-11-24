@@ -14,7 +14,7 @@ async function connect() {
     connection = await amqp.connect("amqp://localhost");
     channel = await connection.createChannel();
 
-    await this.channel.assertExchange("saga_exchange", "direct", {
+    await channel.assertExchange("saga_exchange", "direct", {
       durable: true,
     });
 
