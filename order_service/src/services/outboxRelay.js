@@ -18,8 +18,8 @@ async function startOutBoxRelay() {
       });
       for (const msg of message) {
         try {
-          if (message.length > 0) {
-          }
+          // if (message.length > 0) {
+          // }
           await publish(msg.routing_key, msg.payload);
 
           // we can use here batch save

@@ -3,15 +3,13 @@ const express = require("express");
 const app = express();
 const proxy = require("express-http-proxy");
 const cors = require("cors");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const { validateToken } = require("./middleware/validate.token");
 // Add body parser Middleware
 
 const port = process.env.PORT || 3000;
 
-const auth_service = process.env.AUTH_SERVICE || "localhost:3001";
-const blog_service = process.env.BLOG_SERVICE || "localhost:3002";
-const media_service = process.env.MEDIA_SERVICE || "localhost:3003";
 const order_service = process.env.ORDER_SERVICE || "localhost:3005";
 const inventory_service = process.env.INVENTORY_SERVICE || "localhost:3004";
 const payment_service = process.env.PAYMENT_SERVICE || "localhost:3006";
@@ -54,68 +52,23 @@ app.get("/v1/hello", (req, res, next) => {
   });
   next();
 });
-app.use(
-  "/v1/auth",
-  proxy(`http://${auth_service}/api/auth`, {
-    ...proxyOption,
-    proxyReqOptDecorator: (proxyReq, srcReq) => {
-      proxyReq.headers["Content-Type"] = "application/json";
-      return proxyReq;
-    },
-    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-      console.log(
-        "Response Recieved from Identity service : ",
-        proxyRes.statuscode
-      );
-      return proxyResData;
-    },
-  })
-);
-
-// for blog_service
-app.use(
-  "/v1/blog",
-  validateToken,
-  proxy(`http://${blog_service}/api/blog`, {
-    ...proxyOption,
-    proxyReqOptDecorator: (proxyReq, srcReq) => {
-      proxyReq.headers["Content-Type"] = "application/json";
-      proxyReq.headers["x-user-id"] = srcReq.user.id;
-
-      return proxyReq;
-    },
-    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-      console.log(
-        "Response Recieved from blog service : ",
-        proxyRes.statuscode
-      );
-      return proxyResData;
-    },
-  })
-);
-
-app.use(
-  "/v1/media",
-  validateToken,
-  proxy(`http://${media_service}/api/media`, {
-    ...proxyOption,
-    proxyReqOptDecorator: (proxyReq, srcReq) => {
-      proxyReq.headers["x-user-id"] = srcReq.user.id;
-      if (!srcReq.headers["content-type"].startsWith("multipart/form-data")) {
-        proxyReq.headers["Content-Type"] = "application/json";
-      }
-
-      return proxyReq;
-    },
-    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-      console.log(
-        "Response Recieved from media service : ",
-        proxyRes.statuscode
-      );
-      return proxyResData;
-    },
-  })
-);
+// app.use(
+//   "/v1/auth",
+//   proxy(`http://${auth_service}/api/auth`, {
+//     ...proxyOption,
+//     proxyReqOptDecorator: (proxyReq, srcReq) => {
+//       proxyReq.headers["Content-Type"] = "application/json";
+//       return proxyReq;
+//     },
+//     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+//       console.log(
+//         "Response Recieved from Identity service : ",
+//         proxyRes.statuscode
+//       );
+//       return proxyResData;
+//     },
+//   })
+// );
 
 // Inventory service (no auth by default)
 app.use(
@@ -139,8 +92,12 @@ app.use(
 // Order service (requires auth)
 app.use(
   "/v1/order",
-  validateToken,
-  proxy(`http://${order_service}/api/order`, {
+  (req, res, next) => {
+    console.log("called order service");
+    next();
+  },
+
+  proxy(`http://${order_service}/api`, {
     ...proxyOption,
     proxyReqOptDecorator: (proxyReq, srcReq) => {
       proxyReq.headers["Content-Type"] = "application/json";
@@ -158,10 +115,40 @@ app.use(
   })
 );
 
+// 1. Create the proxy with a fix for the body stream and path rewrite
+// const orderProxy = createProxyMiddleware({
+//   target: `http://${order_service}`,
+//   changeOrigin: true,
+//   // FIX 1: Adjust Path Rewrite
+//   // app.use('/v1/order') strips the prefix. The proxy sees "/create-order".
+//   // We rewrite the starting "/" to "/api/" so it becomes "/api/create-order"
+
+//   onProxyReq: (proxyReq, req, res) => {
+//     // FIX 2: Restream the parsed body
+//     if (req.body && Object.keys(req.body).length > 0) {
+//       const bodyData = JSON.stringify(req.body);
+
+//       // Update headers to match the serialized body
+//       proxyReq.setHeader("Content-Type", "application/json");
+//       proxyReq.setHeader("Content-Length", Buffer.byteLength(bodyData));
+
+//       // Write the body to the proxy request stream
+//       proxyReq.write(bodyData);
+//     }
+//   },
+//   onError: (err, req, res) => {
+//     console.error("Proxy error:", err);
+//     res.status(500).json({ error: "Proxy failed", details: err.message });
+//   },
+// });
+
+// 2. Mount the proxy
+// app.use("/v1/order", orderProxy);
+
 // Payment service (requires auth)
 app.use(
   "/v1/payment",
-  validateToken,
+
   proxy(`http://${payment_service}/api/payment`, {
     ...proxyOption,
     proxyReqOptDecorator: (proxyReq, srcReq) => {

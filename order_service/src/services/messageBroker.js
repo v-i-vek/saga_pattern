@@ -8,13 +8,14 @@ const {
 
 let channel = null;
 let connection = null;
+const SAGA_EXCHANGE = "saga_exchange";
 
 async function connect() {
   try {
     connection = await amqp.connect("amqp://localhost");
     channel = await connection.createChannel();
 
-    await channel.assertExchange("saga_exchange", "direct", {
+    await channel.assertExchange(SAGA_EXCHANGE, "direct", {
       durable: true,
     });
 
@@ -33,9 +34,9 @@ async function publish(routingKey, payload) {
     const messageBuffer = Buffer.from(JSON.stringify(payload));
     // Publish to the exchange with a specific routing key
     // e.g., routingKey = 'order.created' or 'stock.reserved'
-    channel.publish("saga_exchange", routingKey, messageBuffer);
+    await channel.publish(SAGA_EXCHANGE, routingKey, messageBuffer);
 
-    console.log(`📢 Published message to [${routingKey}]`);
+    console.log(`📢 Published message from order_service to [${routingKey}]`);
   } catch (error) {
     console.error("Error publishing to RabbitMQ:", error);
     process.exit(1);
@@ -57,7 +58,7 @@ async function consume() {
   ];
 
   for (const key of bindingKeys) {
-    await channel.bindQueue(q.queue, "saga_exchange", key);
+    await channel.bindQueue(q.queue, SAGA_EXCHANGE, key);
   }
   console.log("🎧 Order Service Orchestrator waiting for events...");
 

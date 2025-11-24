@@ -1,4 +1,5 @@
-const { Product } = require("../models/inventory");
+const { sequelize } = require("../config/db");
+const { InventoryReservation, Product } = require("../models/inventory");
 const { Outbox } = require("../models/outbox");
 const { ProcessedMSG } = require("../models/processedMSG");
 
@@ -36,7 +37,7 @@ const handleReserveStock = async (content, messageId) => {
       await InventoryReservation.create(
         {
           saga_id,
-          Product_id: items[0].product_id,
+          product_id: items[0].product_id,
           quantity_reserved: quantityRequested,
           status: "RESERVED",
         },

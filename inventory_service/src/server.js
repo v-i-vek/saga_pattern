@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3004;
 // Sequelize connection
 const { connectDB } = require("./config/db");
 const { consume } = require("./services/messageBroker");
+const { startOutBoxRelay } = require("./services/outboxRelay");
 const { handleReserveStock } = require("./services/handler");
 
 app.get("/health", (req, res) => {
@@ -16,6 +17,7 @@ app.get("/health", (req, res) => {
 async function start() {
   try {
     await connectDB();
+    await startOutBoxRelay();
     await consume("command.reserve_stock", handleReserveStock);
     app.listen(PORT, () => {
       console.log(`Inventory service listening on port ${PORT}`);

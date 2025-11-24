@@ -4,13 +4,14 @@ let channel = null;
 let connection = null;
 
 const MQ_COMMAND = "command.reserve_stock";
+const SAGA_EXCHANGE = "saga_exchange";
 
 async function connect() {
   try {
     connection = await amqp.connect("amqp://localhost");
     channel = await connection.createChannel();
 
-    await channel.assertExchange("saga_exchange", "direct", {
+    await channel.assertExchange(SAGA_EXCHANGE, "direct", {
       durable: true,
     });
 
@@ -29,7 +30,7 @@ async function publish(routingKey, payload) {
     const messageBuffer = Buffer.from(JSON.stringify(payload));
     // Publish to the exchange with a specific routing key
     // e.g., routingKey = 'order.created' or 'stock.reserved'
-    channel.publish("saga_exchange", routingKey, messageBuffer);
+    channel.publish(SAGA_EXCHANGE, routingKey, messageBuffer);
 
     console.log(`📢 Published message to [${routingKey}]`);
   } catch (error) {
@@ -49,12 +50,15 @@ async function consume(routingKey, callback) {
 
     //  Bind Queue to Exchange
     // We listen specifically for "command.reserve_stock"
-    await channel.bindQueue(q.queue, "saga_exchange", MQ_COMMAND);
+    console.log(`🔗 Binding queue to key: ${MQ_COMMAND}`);
+    await channel.bindQueue(q.queue, SAGA_EXCHANGE, MQ_COMMAND);
 
     console.log("🎧 Inventory Service waiting for messages...");
 
     // consume messages
-    channel.consume(q.queue, async () => {
+    await channel.consume(q.queue, async (msg) => {
+      console.log("message value ", msg);
+
       if (msg !== null) {
         const content = JSON.parse(msg.content.toString());
         const routingKey = msg.fields.routingKey;

@@ -4,6 +4,8 @@ const { Orders } = require("../models/order");
 const { Outbox } = require("../models/outbox");
 
 const createOrder = async (req, res) => {
+  console.log("________called _=============");
+
   const t = await sequelize.transaction();
 
   try {
@@ -22,6 +24,8 @@ const createOrder = async (req, res) => {
         transaction: t,
       }
     );
+
+    console.log("=====", newOrder);
 
     // 2. Create the Outbox Event (Command: Reserve Stock)
     // Notice: We are not sending to RabbitMQ yet. Just saving to DB.
@@ -52,7 +56,7 @@ const createOrder = async (req, res) => {
     //   in the next 2 seconds and send it to RabbitMQ.
     res.status(201).json({
       message: "Order received, processing started.",
-      saga_id: sagaId,
+      saga_id,
     });
   } catch (error) {
     await t.rollback();

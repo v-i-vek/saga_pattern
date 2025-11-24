@@ -29,7 +29,9 @@ async function publish(routingKey, payload) {
     // e.g., routingKey = 'order.created' or 'stock.reserved'
     channel.publish("saga_exchange", routingKey, messageBuffer);
 
-    console.log(`📢 Published message to [${routingKey}]`);
+    console.log(
+      `📢 Published message by payment_service to this [${routingKey}] key`
+    );
   } catch (error) {
     console.error("Error publishing to RabbitMQ:", error);
     process.exit(1);
@@ -52,7 +54,7 @@ async function consume(routingKey, callback) {
     console.log("🎧 Inventory Service waiting for messages...");
 
     // consume messages
-    channel.consume(q.queue, async () => {
+    channel.consume(q.queue, async (msg) => {
       if (msg !== null) {
         const content = JSON.parse(msg.content.toString());
         const routingKey = msg.fields.routingKey;
