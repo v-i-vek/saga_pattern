@@ -48,7 +48,7 @@ async function consume() {
     await connect();
   }
   // 1 creating queue
-  const q = await channel.assertQueue("order_reply_queue", { durable: true });
+  const q = await channel.assertQueue("order_reply_queu", { durable: true });
   // 2. Bind all relevant events to this queue
   const bindingKeys = [
     "event.stock_reserved",
@@ -67,6 +67,8 @@ async function consume() {
       const content = JSON.parse(msg.content.toString());
       const routingKey = msg.fields.routingKey;
       const messageId = msg.properties.messageId;
+
+      console.log("====msg==== \n", msg);
 
       console.log(`📥 Orchestrator received: ${routingKey}`);
 

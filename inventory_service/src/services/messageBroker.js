@@ -46,7 +46,7 @@ async function consume(routingKey, callback) {
     }
     // Create a Queue for Inventory Service
     // 'inventory_queue' will hold messages specifically for this service
-    const q = await channel.assertQueue("inventory_queue", { durable: true });
+    const q = await channel.assertQueue("inventory_queu", { durable: true });
 
     //  Bind Queue to Exchange
     // We listen specifically for "command.reserve_stock"

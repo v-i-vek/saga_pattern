@@ -5,7 +5,7 @@ const { ProcessedMSG } = require("../models/processedMSG");
 
 const handleReserveStock = async (content, messageId) => {
   const t = await sequelize.transaction();
-
+  console.log("content ------->", content);
   try {
     const { order_id, saga_id, items } = content;
     // If we already processed this messageId, ignore it.

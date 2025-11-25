@@ -21,6 +21,8 @@ const isProcessed = async (messageId, t) => {
 //  handler:1 stock Reserved --> Trigger Payment service
 
 const handleStockReserve = async (payload, messageId) => {
+  console.log("payload ------> \n", payload);
+
   const t = await sequelize.transaction();
 
   try {
@@ -32,7 +34,17 @@ const handleStockReserve = async (payload, messageId) => {
 
     // fetch Order
 
-    const order = await Orders.findOne({ where: { saga_id }, transaction: t });
+    const orderData = await Orders.findOne({
+      where: { saga_id },
+      transaction: t,
+    });
+    if (!orderData) {
+      console.log(`Order not found for saga_id: ${saga_id}`);
+      return;
+    }
+
+    const order = orderData.get({ plain: true });
+
     if (!order) throw new Error("order not found");
 
     // generate payment command
@@ -58,7 +70,10 @@ const handleStockReserve = async (payload, messageId) => {
     await t.commit();
   } catch (error) {
     await t.rollback();
-    console.error("Handler Error", error);
+    console.error(
+      "Handler Error from order Service in handleStockReserve() function \n",
+      error
+    );
   }
 };
 

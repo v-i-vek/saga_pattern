@@ -13,13 +13,6 @@ const PORT = process.env.PORT || 3005;
 
 // Sequelize connection
 
-app.use((req, res, next) => {
-  console.log(
-    `++++++++++++++ Received ${req.method} request to ${req.url} +++++++++++`
-  );
-
-  next();
-});
 app.get("/api/order/health", (req, res) => {
   console.log("called the api");
   res.status(200).json({ status: "ok", service: "order" });
@@ -29,14 +22,7 @@ async function start() {
     await connectDB();
     await startOutBoxRelay();
     await consume();
-    app.post(
-      "/api/order/create-order",
-      (req, res, next) => {
-        console.log("hello word form orders");
-        next();
-      },
-      createOrder
-    );
+    app.post("/api/order/create-order", createOrder);
     app.listen(PORT, () => {
       console.log(`Order service listening on port ${PORT}`);
     });

@@ -18,7 +18,8 @@ async function startOutBoxRelay() {
         limit: BATCH_SIZE,
         order: [["id", "ASC"]], // oldest first
       });
-      for (const msg of message) {
+      const cleanMsg = rows.map((row) => row.get({ plain: true }));
+      for (const msg of cleanMsg) {
         try {
           if (message.length > 0) {
           }
@@ -26,7 +27,8 @@ async function startOutBoxRelay() {
 
           // we can use here batch save
           msg.published = true;
-          await msg.save();
+          await Outbox.update({ published: true }, { where: { id: msg.id } });
+
           console.log(`✅ Outbox ID ${msg.id} processed`);
         } catch (error) {
           console.log(`❌ Failed to publish msg ${msg.id}`, error);
