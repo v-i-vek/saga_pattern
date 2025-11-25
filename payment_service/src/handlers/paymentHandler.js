@@ -8,7 +8,7 @@ const handleProcessPayment = async (payload, messageId) => {
   try {
     const { saga_id, order_id, amount, currency } = payload;
     // check for idempotency
-    const alreadyProcessed = await ProcessedMSG.findeOne({
+    const alreadyProcessed = await ProcessedMSG.findOne({
       where: { message_id: messageId || `pay_${saga_id}` },
       transaction: t,
     });

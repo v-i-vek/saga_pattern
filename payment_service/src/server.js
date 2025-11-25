@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3006;
 const { connectDB } = require("./config/db");
 const { consume } = require("./services/messageBroker");
 const { handleProcessPayment } = require("./handlers/paymentHandler");
+const { startOutBoxRelay } = require("./services/outboxRelay");
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "payment" });
@@ -17,6 +18,7 @@ async function start() {
   try {
     await connectDB();
     await consume("routing key", handleProcessPayment);
+    await startOutBoxRelay();
     app.listen(PORT, () => {
       console.log(`Payment service listening on port ${PORT}`);
     });

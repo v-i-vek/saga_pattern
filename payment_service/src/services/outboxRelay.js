@@ -4,12 +4,10 @@ const { publish } = require("../services/messageBroker");
 
 const BATCH_SIZE = 10; // Process 10 messages at a time
 const POLLING_INTERVAL = 1000; // Check every 1 seconds
-let Run = 0;
 async function startOutBoxRelay() {
   console.log("🚀 Outbox Relay started...");
   setInterval(async () => {
     try {
-      Run++;
       // find unpublished msg(in some any case the msg is not published)
       const message = await Outbox.findAll({
         where: {
@@ -18,7 +16,7 @@ async function startOutBoxRelay() {
         limit: BATCH_SIZE,
         order: [["id", "ASC"]], // oldest first
       });
-      const cleanMsg = rows.map((row) => row.get({ plain: true }));
+      const cleanMsg = message.map((row) => row.get({ plain: true }));
       for (const msg of cleanMsg) {
         try {
           if (message.length > 0) {
@@ -37,7 +35,6 @@ async function startOutBoxRelay() {
     } catch (error) {
       console.error("Outbox Relay Error:", error);
     }
-    console.log("Running time ", Run);
   }, POLLING_INTERVAL);
 }
 

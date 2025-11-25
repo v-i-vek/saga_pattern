@@ -56,7 +56,7 @@ const handleStockReserve = async (payload, messageId) => {
       {
         saga_id,
         topic: "payment_service",
-        routingKey: "command.process_payment", // will be the next step in saga
+        routing_key: "command.process_payment", // will be the next step in saga
         payload: {
           saga_id,
           order_id,
